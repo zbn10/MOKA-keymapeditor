@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MOKA キーマップエディタ</title>
+  <link rel="stylesheet" href="application.css">
+  <link rel="stylesheet" href="keymap.css">
+</head>
+<body>
+  <div class="container">
+    <h2>MOKA キーマップエディタ</h2>
+    <form class="layer-form" style="margin-bottom: 24px; text-align: center;">
+    <div id="message" class="message-block" aria-live="polite" style="display:block;">
+      <!-- JavaScriptでメッセージをここに挿入 -->
+    </div>
+
+    <div class="actions">
+      <button type="button" id="connectBtn">未接続</button>
+      <button type="button" id="loadBtn">読込</button>
+      <button type="button" id="applyBtn">反映</button>
+      <button type="button" id="saveBtn">保存</button>
+    </div>
+    <div class="notes-block">
+        ※「反映」はアクティブキーマップへの反映のみで保存はしません<br>
+        ※「保存」で選択した番号のプロファイルにキーマップが保存されます。
+    </div>
+    <div><br></div>
+      <label for="primaryProfileSelect">優先プロファイル：</label>
+      <select id="primaryProfileSelect" name="primaryProfile">
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select>
+      &nbsp;&nbsp;
+      <label for="profileSelect">プロファイル選択：</label>
+      <select id="profileSelect" name="profile">
+        <option value="126">アクティブ</option>
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="125">デフォルト</option>
+      </select>
+
+      <!--&nbsp;&nbsp;-->
+      <div><br></div>
+      <label for="layerSelect">レイヤ選択：</label>
+      <select id="layerSelect" name="layer">
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select>
+      &nbsp;&nbsp;
+      <label for="osLangSelect">OSキーボード言語：</label>
+      <select id="osLangSelect" name="osLang">
+        <option value="1">日本語</option>
+        <option value="0">英語</option>
+      </select>
+    </form>
+
+    <div class="keyboard" id="keyboard">
+      <!-- キーがここに描画されます -->
+    </div>
+    <div class="function-list" id="functionList" style="margin-top: 32px; text-align: center;">
+      <!-- 機能ボタンがここに描画されます -->
+    </div>
+    <div class="notes-block">個別キーマップ設定
+    </div>
+    <div class="custom-settings" id="customSettings" style="margin: 24px 0; text-align: center;">
+      <!-- 追加設定項目ブロック -->
+    </div>
+    <div class="notes-block">磁気スイッチ　動作ポイント
+    </div>
+    <div class="magsw-settings" id="MagswSettings" style="margin: 24px 0; text-align: center;">
+      <!-- マグネットスイッチ設定ブロック -->
+    </div>
+    <div class="notes-block">LED設定
+    </div>
+    <div class="led-settings" id="ledSettings" style="margin: 24px 0; text-align: center;">
+      <!-- LED設定ブロック -->
+    </div>
+
+    <script src="application.js"></script>
+    <script src="serial.js"></script>
+    <script src="webhid.js"></script>
+    <script src="keymap.js"></script>
+  </body>
+  </html>

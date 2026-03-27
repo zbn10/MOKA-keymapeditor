@@ -1,0 +1,171 @@
+/* 機能一覧ボタンの色をキーボードキーと同じに */
+.function-btn {
+  background: #e3e7ef;
+  border: 1.5px solid #bfc7d5;
+  border-radius: 6px;
+  color: #222;
+  font-size: 0.77rem;
+  width: 53px;
+  height: 26px;
+  margin: 2px;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s;
+  user-select: none;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.function-btn:focus, .function-btn.selected {
+  background: #a7d3f7;
+  border-color: #2196f3;
+  outline: none;
+}
+body {
+  font-family: sans-serif;
+  background: #f7f7fa;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  max-width: 700px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 32px 24px 24px 24px;
+  display: flex;
+  flex-direction: column;
+}
+h1 {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 32px;
+  width: 100%;
+}
+.key-row {
+form.layer-form {
+  margin-bottom: 24px;
+  text-align: center;
+  display: block;
+  width: 100%;
+  float: none;
+  clear: both;
+}
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.key {
+  width: 44px;
+  height: 44px;
+  background: #e3e7ef;
+  border: 1.5px solid #bfc7d5;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s;
+  user-select: none;
+}
+.key.selected {
+  background: #a7d3f7;
+  border-color: #2196f3;
+}
+.key:focus {
+  outline: 2px solid #2196f3;
+  z-index: 1;
+}
+.key-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #222;
+  text-align: center;
+  font-size: 0.77rem;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.actions {
+  text-align: center;
+  margin-top: 24px;
+  display: block;
+  width: 100%;
+  clear: both;
+}
+button {
+  padding: 8px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: none;
+  background: #2196f3;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+button:hover {
+  background: #1769aa;
+}
+
+#connectBtn {
+  background: #fff;
+  border: 1px solid #000;
+  color: #000;
+}
+
+#connectBtn:hover {
+  background: #fff;
+}
+
+/* トグルスイッチ */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  vertical-align: middle;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #bfc7d5;
+  border-radius: 24px;
+  transition: background 0.2s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: #2196f3;
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
