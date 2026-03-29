@@ -97,6 +97,25 @@ function renderCustomSettings() {
       btn.classList.remove('selected');
       const funcValue = e.dataTransfer.getData('func-value');
       let funcName = e.dataTransfer.getData('func-name');
+      // funcValueと16進数文字列をどちらも数値に変換して比較
+      const tr = btn.closest('tr');
+      if (tr) {
+        const selects = tr.querySelectorAll('select');
+        if (selects.length > 1) {
+          const numFuncValue = Number(funcValue);
+          const ban1 = Number('0xB2'); // JIGLR
+          const ban2 = Number('0xBD'); // LEDAT
+          if (numFuncValue === ban1) {
+            selects[1].value = '9'; // 状態を「入力値」に変更
+            selects[0].value = '47'; // キーを「人感」に変更
+          } else if (numFuncValue === ban2) {
+            selects[1].value = '9';
+            selects[0].value = '46'; // キーを「光量」に変更
+          } else {
+            selects[1].value = '4'; // 状態を「タップ」に変更
+          }
+        }
+      }
       btn.setAttribute('data-func-value', funcValue);
       if (funcValue === '0' || funcValue === 0) {
         funcName = '';
@@ -130,7 +149,7 @@ function renderMagswSettings() {
     { key: 'partialReleasePoint', label: '半リリース' },
     { key: 'PressPoint', label: '全押し' },
     { key: 'ReleasePoint', label: '全リリース' },
-    { key: 'tapJudgeTime', label: 'タップ(ms)' }
+    { key: 'tapJudgeTime', label: 'タップ(～999ms)' }
   ];
 
   magswSettings.innerHTML = '';
@@ -168,6 +187,7 @@ function renderMagswSettings() {
     //tdLayer.style.whiteSpace = 'nowrap';
     //tr.appendChild(tdLayer);
 
+    const maxvalue = {partialPressPoint: 255, partialReleasePoint: 255, PressPoint: 255, ReleasePoint: 255, tapJudgeTime: 999};
     settingColumns.forEach((column) => {
       const td = document.createElement('td');
       td.style.width = settingColumnWidth;
@@ -175,7 +195,8 @@ function renderMagswSettings() {
       const input = document.createElement('input');
       input.type = 'number';
       input.min = '0';
-      input.step = '1';
+      input.max = String(maxvalue[column.key] ?? 255);
+      input.step = '10';
       input.value = '0';
       input.style.width = '100px';
       input.name = `magsw-layer-${layer}-${column.key}`;
@@ -212,14 +233,15 @@ function renderLedSettings() {
     { key: 'state7', label: 'ScrollLock' }
   ];
   const colorOptions = [
-    { value: 1, label: 'RED' },
-    { value: 2, label: 'GREEN' },
-    { value: 3, label: 'BLUE' },
-    { value: 4, label: 'YELLOW' },
-    { value: 5, label: 'CYAN' },
-    { value: 6, label: 'MAGENTA' },
-    { value: 7, label: 'WHITE' },
-    { value: 8, label: 'RAINBOW' }
+    { value: 0, label: '色なし' },
+    { value: 1, label: '赤' },
+    { value: 2, label: '緑' },
+    { value: 3, label: '青' },
+    { value: 4, label: '黄' },
+    { value: 5, label: 'シアン' },
+    { value: 6, label: 'マゼンタ' },
+    { value: 7, label: '白' },
+    { value: 8, label: '虹' }
   ];
 
   const statusColumnWidth = '120px';
@@ -281,7 +303,7 @@ function renderLedSettings() {
     { label: 'B', width: rgbColumnWidth }
   ].forEach((column) => {
     const td = document.createElement('td');
-    td.textContent = column.label;
+    td.textContent = column.label + '(0〜255)';
     td.style.width = column.width;
     td.style.whiteSpace = 'nowrap';
     rgbHeadRow.appendChild(td);
@@ -459,6 +481,16 @@ function renderKeyboard() {
         key.classList.remove('selected');
         const funcValue = e.dataTransfer.getData('func-value');
         let funcName = e.dataTransfer.getData('func-name');
+        // 0xB2 または 0xBD の場合は配置不可
+        // funcValueと16進数文字列をどちらも数値に変換して比較
+        const numFuncValue = Number(funcValue);
+        const ban1 = Number('0xB2'); // JIGLR
+        const ban2 = Number('0xBD'); // LEDAT
+        if (numFuncValue === ban1 || numFuncValue === ban2) {
+          showMessageError('配置できません');
+          setTimeout(clearMessage, 5000);
+          return;
+        }
         const activeLayer = getSelectedLayerIndex();
         keymapByLayer[currentKeyIndex][activeLayer] = {
           name: funcName,
@@ -544,19 +576,43 @@ function flattenKeymapLayerToUint8Array() {
   const magswSettings = document.getElementById('MagswSettings') || document.getElementById('magswSettings');
   if (magswSettings) {
     const rows = magswSettings.querySelectorAll('tbody tr');
-    rows.forEach((row) => {
+    let valuesToPush = [];
+    for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
+      const row = rows[rowIdx];
       const inputs = Array.from(row.querySelectorAll('input[type="number"]'));
       // 0〜3番目はそのままpush
       for (let i = 0; i < 4; i++) {
-        flat.push(toUint8(inputs[i].value));
+        valuesToPush.push(toUint8(inputs[i].value) & 0xFF);
       }
       // 5つ目はuint16としてhigh/lowに分割
       if (inputs[4]) {
         const val16 = Number(inputs[4].value) & 0xFFFF;
-        flat.push((val16 >> 8) & 0xFF); // high byte
-        flat.push(val16 & 0xFF);        // low byte
+        valuesToPush.push((val16 >> 8) & 0xFF); // high byte
+        valuesToPush.push(val16 & 0xFF);        // low byte
       }
-    });
+
+      if(valuesToPush[0] <= valuesToPush[1]) {
+        showMessageError('半押し動作ポイント > 半リリース動作ポイント に修正してください');
+        setTimeout(clearMessage, 5000);
+        return [];
+      }
+      if(valuesToPush[2] <= valuesToPush[3]) {
+        showMessageError('全押し動作ポイント > 全リリース動作ポイント に修正してください');
+        setTimeout(clearMessage, 5000);
+        return [];
+      }
+      if(valuesToPush[2] <= valuesToPush[0]) {
+        showMessageError('全押し動作ポイント > 半押し動作ポイント に修正してください');
+        setTimeout(clearMessage, 5000);
+        return [];
+      }
+      if((valuesToPush[4] << 8) + valuesToPush[5] >= 1000) {
+        showMessageError('タップ判定時間 < 1000 に修正してください');
+        setTimeout(clearMessage, 5000);
+        return [];
+      }
+      valuesToPush.forEach(v => flat.push(v));
+    }
   }
 
   const ledSettingsEl = document.getElementById('ledSettings');
@@ -690,8 +746,23 @@ function inflateKeymapLayerFromUint8Array(payload) {
   return true;
 }
 
+function checkProfileParameters() {
+  //if(tpp <= tpp2r) {
+  //if(tp <= tpp) {
+  //if(tp <= tp2r) {
+  //if(dur_hold >= KeyswConst::DurHoldL) {
+  return true;
+}
+
 document.getElementById('applyBtn').addEventListener('click', async () => {
+  if(checkProfileParameters() === false) {
+    return;
+  }
+
   const flatKeymap = flattenKeymapLayerToUint8Array();
+  if(flatKeymap.length === 0) {
+    return;
+  }
   //const fixedPayload = toFixedReportData(flatKeymap);
   sendReport(flatKeymap);
   console.log(Array.from(flatKeymap));
@@ -924,7 +995,7 @@ const functionCodeList = [
   { name: 'YEN', value: 0x9D },
   { name: 'CONV', value: 0x9E },
   { name: 'NCNV', value: 0x9F },
-  { name: 'Jiglr', value: 0xB2 },
+  { name: 'JIGLR', value: 0xB2 },
   { name: 'LEDAT', value: 0xBD },
   { name: 'LED_D', value: 0xBE },
   { name: 'LED_U', value: 0xBF },
@@ -941,6 +1012,7 @@ const functionCodeList = [
   { name: 'MouBW', value: 0xD3 },
   { name: 'MouFW', value: 0xD4 },
   { name: 'TP_SC', value: 0xD7 },
+  { name: 'TP_M', value: 0xD8 },
   { name: 'TP_EN', value: 0xD9 },
   { name: 'TP_L', value: 0xDA },
   { name: 'TP_L2', value: 0xDB },
