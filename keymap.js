@@ -861,7 +861,17 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   const received = await receiveReport();
   if (received && received.length > 0) {
     console.log(Array.from(received));
+
+    if (received[0] === webhid_data.RESPONSE_ACK) {
+      showMessageInfo('保存に成功しました');
+    } else {
+      const responseText = webhid_data.ResponseCode[received[0]] ?? String(received[0]);
+      showMessageError('保存に失敗。エラー:' + responseText);
+    }
+  } else {
+    showMessageError('保存に失敗しました');
   }
+
 });
 
 // FunctionCode一覧（functions_code.h から手動で抽出・同期が必要）
