@@ -218,6 +218,7 @@ function renderLedSettings() {
   if (!ledSettings) return;
 
   const statusRows = [
+    { key: '',          label: 'キーLED' },
     { key: 'release',   label: 'リリース' },
     { key: 'halfPress', label: '半押し' },
     { key: 'fullPress', label: '全押し' },
@@ -272,16 +273,22 @@ function renderLedSettings() {
     const tdColor = document.createElement('td');
     tdColor.style.width = colorColumnWidth;
     tdColor.style.whiteSpace = 'nowrap';
-    const select = document.createElement('select');
-    select.name = `led-color-${status.key}`;
-    select.setAttribute('aria-label', `${status.label} カラー`);
-    colorOptions.forEach((opt) => {
-      const o = document.createElement('option');
-      o.value = String(opt.value);
-      o.textContent = opt.label;
-      select.appendChild(o);
-    });
-    tdColor.appendChild(select);
+    if (status.key !== '') {
+      const select = document.createElement('select');
+      select.name = `led-color-${status.key}`;
+      select.setAttribute('aria-label', `${status.label} カラー`);
+      let optionsToAdd = colorOptions;
+      //if (status.key === 'release') {
+      //  optionsToAdd = colorOptions.filter(opt => opt.value === 0 || opt.value === 8);
+      //}
+      optionsToAdd.forEach((opt) => {
+        const o = document.createElement('option');
+        o.value = String(opt.value);
+        o.textContent = opt.label;
+        select.appendChild(o);
+      });
+      tdColor.appendChild(select);
+    }
     selectRow.appendChild(tdColor);
   });
   tbody.appendChild(selectRow);
@@ -297,13 +304,13 @@ function renderLedSettings() {
   const rgbHead = document.createElement('thead');
   const rgbHeadRow = document.createElement('tr');
   [
-    { label: '状態', width: '70px' },
-    { label: 'R', width: rgbColumnWidth },
-    { label: 'G', width: rgbColumnWidth },
-    { label: 'B', width: rgbColumnWidth }
+    { label: 'システムLED', width: '70px' },
+    { label: 'R(0～255)', width: rgbColumnWidth },
+    { label: 'G(0～255)', width: rgbColumnWidth },
+    { label: 'B(0～255)', width: rgbColumnWidth }
   ].forEach((column) => {
     const td = document.createElement('td');
-    td.textContent = column.label + '(0〜255)';
+    td.textContent = column.label;
     td.style.width = column.width;
     td.style.whiteSpace = 'nowrap';
     rgbHeadRow.appendChild(td);
@@ -333,7 +340,7 @@ function renderLedSettings() {
       input.value = '0';
       input.style.width = '64px';
       input.name = `led-rgb-${state.key}-${channel}`;
-      input.setAttribute('aria-label', `${state.label} ${channel.toUpperCase()}`);
+      input.setAttribute('aria-label', `${state.label} ${channel.toUpperCase()} (0～255)`);
 
       td.appendChild(input);
       tr.appendChild(td);
@@ -766,7 +773,7 @@ document.getElementById('applyBtn').addEventListener('click', async () => {
   //const fixedPayload = toFixedReportData(flatKeymap);
   sendReport(flatKeymap);
   console.log(Array.from(flatKeymap));
-  await new Promise((resolve) => setTimeout(resolve, 50));
+  await new Promise((resolve) => setTimeout(resolve, 200));
 
   const received = await receiveReport();
   if (!received || received.length === 0) {
@@ -793,7 +800,7 @@ document.getElementById('loadBtn').addEventListener('click', async () => {
   const profile = parseInt(document.getElementById('profileSelect').value, 10);
   const oslayout = parseInt(document.getElementById('osLangSelect').value, 10);
   sendReport([toUint8(webhid_data.CMD_FETCH), toUint8(primaryProfile), toUint8(profile), toUint8(oslayout)]);
-  await new Promise((resolve) => setTimeout(resolve, 50));
+  await new Promise((resolve) => setTimeout(resolve, 200));
 
   const received = await receiveReport();
   if (!received || received.length === 0) {
@@ -976,6 +983,7 @@ const functionCodeList = [
   { name: '|', value: 0x7C },
   { name: '}', value: 0x7D },
   { name: '~', value: 0x7E },
+  { name: 'CapsL', value: 0x80 },
   { name: 'F1', value: 0x81 },
   { name: 'F2', value: 0x82 },
   { name: 'F3', value: 0x83 },
@@ -989,6 +997,7 @@ const functionCodeList = [
   { name: 'F11', value: 0x8B },
   { name: 'F12', value: 0x8C },
   { name: 'PrtSc', value: 0x8D },
+  { name: 'ScrL', value: 0x8E },
   { name: 'Pau', value: 0x8F },
   { name: 'Ins', value: 0x90 },
   { name: 'Home', value: 0x91 },
@@ -1000,6 +1009,7 @@ const functionCodeList = [
   { name: 'Arw_L', value: 0x97 },
   { name: 'Arw_D', value: 0x98 },
   { name: 'Arw_U', value: 0x99 },
+  { name: 'NumL', value: 0x9A },
   { name: 'HNZN', value: 0x9B },
   { name: 'HRKN', value: 0x9C },
   { name: 'YEN', value: 0x9D },
@@ -1058,9 +1068,9 @@ function renderFunctionList() {
   if (!functionList) return;
   let html = '';
   let idx = 0;
-  for (let row = 0; row < 20; row++) {
+  for (let row = 0; row < 15; row++) {
     html += '<div style="display:flex; justify-content:center; width:100%">';
-    for (let col = 0; col < 10; col++) {
+    for (let col = 0; col < 12; col++) {
       if (idx < functionCodeList.length) {
         const fn = functionCodeList[idx];
         html += `<button type="button" class="function-btn" data-func-value="${fn.value}" title="${fn.name}" draggable="true">${fn.name}</button>`;
