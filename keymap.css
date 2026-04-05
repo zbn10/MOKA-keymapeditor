@@ -117,13 +117,17 @@ button:hover {
   background: #1769aa;
 }
 
-#connectBtn {
+#connectBtn,
+#exportBtn,
+#importBtn {
   background: #fff;
   border: 1px solid #000;
   color: #000;
 }
 
-#connectBtn:hover {
+#connectBtn:hover,
+#exportBtn:hover,
+#importBtn:hover {
   background: #fff;
 }
 

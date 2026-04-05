@@ -10,6 +10,9 @@
     //}
 
     window.sendReport = function(data) {
+      if (!port) {
+        return false;
+      }
       const FRAGMENT_PAYLOAD_SIZE = webhid_data.FRAGMENT_PAYLOAD_SIZE;
       let offset = 0;
       const total = data.length;
@@ -29,12 +32,12 @@
         port.send(fragment);
         offset += fragment_len;
       }
+      return true;
     }
 
     window.receiveReport = async function() {
       if (!port || typeof port.receive !== 'function') {
-        console.error("Port is not available for receiving reports.");
-        return null;
+        return false;
       }
       const fragments = [];
       let totalLength = 0;
@@ -42,14 +45,11 @@
       while (true) {
         let report = await port.receive();
         if (!report || report.length < 2) {
-          console.error("Invalid report received:", report);
-          return null;
+          return false;
         }
 
         // delete report ID
         report = report.slice(1);
-        console.log("Received report:");
-        console.log(Array.from(report));
         const fragment_type = report[0];
         const fragment_len = report[1];
         const payloadEnd = Math.min(2 + fragment_len, report.length);
@@ -68,6 +68,8 @@
           return merged;
         }
       }
+
+      return true;
     }
 
     function addLine(linesId, text) {
@@ -111,10 +113,10 @@
           port = selectedPort;
           connectButton.textContent = `接続: ${port.name()}`;
           clearMessage();
-          // ここで100ms待ってからkeyboard.keyconfLoadを呼ぶ
+          // 100ms待ってからinitialLoadBtnClickを呼ぶ
           setTimeout(() => {
-            if (typeof keyboard.WebHIDfetchActive === 'function') {
-              keyboard.WebHIDfetchActive();
+            if (typeof initialLoadBtnClick === 'function') {
+              initialLoadBtnClick();
             }
           }, 100);
         }).catch(error => {

@@ -103,14 +103,28 @@ function renderCustomSettings() {
         const selects = tr.querySelectorAll('select');
         if (selects.length > 1) {
           const numFuncValue = Number(funcValue);
-          const ban1 = Number('0xB2'); // JIGLR
-          const ban2 = Number('0xBD'); // LEDAT
-          if (numFuncValue === ban1) {
+          const jigler = Number('0xB2'); // JIGLR
+          const ledauto = Number('0xBD'); // LEDAT
+          const tpscroll = Number('0xD7'); // TP_SC
+          const tpleft = Number('0xDA'); // TP_L
+          const tpleftx2 = Number('0xDB'); // TP_L2
+          const tpright = Number('0xDC'); // TP_R
+          const tprightx2 = Number('0xDD'); // TP_R2
+          if (numFuncValue === jigler) {
             selects[1].value = '9'; // 状態を「入力値」に変更
             selects[0].value = '47'; // キーを「人感」に変更
-          } else if (numFuncValue === ban2) {
+          } else if (numFuncValue === ledauto) {
             selects[1].value = '9';
             selects[0].value = '46'; // キーを「光量」に変更
+          } else if (numFuncValue === tpscroll) {
+            selects[1].value = '9';
+            selects[0].value = '44'; // キーを「タッチパッド左」に変更
+          } else if (numFuncValue === tpleft || numFuncValue === tpleftx2) {
+            selects[1].value = '9';
+            selects[0].value = '44';
+          } else if (numFuncValue === tpright || numFuncValue === tprightx2) {
+            selects[1].value = '9';
+            selects[0].value = '45';
           } else {
             selects[1].value = '4'; // 状態を「タップ」に変更
           }
@@ -210,6 +224,97 @@ function renderMagswSettings() {
 
   table.appendChild(tbody);
   magswSettings.appendChild(table);
+}
+
+// タッチパッド設定の動的生成
+function renderTouchpadSettings() {
+  const touchpadSettings = document.getElementById('touchpadSettings');
+  if (!touchpadSettings) return;
+  touchpadSettings.innerHTML = '';
+
+  // ラッパーdivで横並び
+  const wrapper = document.createElement('div');
+  wrapper.style.display = 'flex';
+  wrapper.style.justifyContent = 'center';
+  wrapper.style.alignItems = 'center';
+  wrapper.style.gap = '24px';
+
+  const touchpadFeelOptions = [
+    { value: '0', label: '安定' },
+    { value: '1', label: '標準' },
+    { value: '2', label: '軽快' }
+  ];
+  const touchpadStrengthOptions = [
+    { value: '0', label: '0' },
+    { value: '1', label: '1' },
+    { value: '2', label: '2' }
+  ];
+
+  // 操作感 左
+  const leftFeelLabel = document.createElement('label');
+  leftFeelLabel.textContent = '左 操作感：';
+  leftFeelLabel.style.marginRight = '5px';
+  const leftFeelSelect = document.createElement('select');
+  leftFeelSelect.name = 'touchpad-leftfeel';
+  leftFeelSelect.setAttribute('aria-label', '左タッチパッド操作感');
+  touchpadFeelOptions.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt.value;
+    o.textContent = opt.label;
+    leftFeelSelect.appendChild(o);
+  });
+  leftFeelLabel.appendChild(leftFeelSelect);
+  wrapper.appendChild(leftFeelLabel);
+
+  // 強さ 左
+  const leftStrengthLabel = document.createElement('label');
+  leftStrengthLabel.textContent = '左レベル：';
+  leftStrengthLabel.style.marginRight = '5px';
+  const leftStrengthSelect = document.createElement('select');
+  leftStrengthSelect.name = 'touchpad-leftstrength';
+  leftStrengthSelect.setAttribute('aria-label', '左タッチパッドレベル');
+  touchpadStrengthOptions.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt.value;
+    o.textContent = opt.label;
+    leftStrengthSelect.appendChild(o);
+  });
+  leftStrengthLabel.appendChild(leftStrengthSelect);
+  wrapper.appendChild(leftStrengthLabel);
+
+  // 操作感 右
+  const rightFeelLabel = document.createElement('label');
+  rightFeelLabel.textContent = '右 操作感：';
+  rightFeelLabel.style.marginRight = '5px';
+  const rightFeelSelect = document.createElement('select');
+  rightFeelSelect.name = 'touchpad-rightfeel';
+  rightFeelSelect.setAttribute('aria-label', '右タッチパッド操作感');
+  touchpadFeelOptions.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt.value;
+    o.textContent = opt.label;
+    rightFeelSelect.appendChild(o);
+  });
+  rightFeelLabel.appendChild(rightFeelSelect);
+  wrapper.appendChild(rightFeelLabel);
+
+  // 強さ 右
+  const rightStrengthLabel = document.createElement('label');
+  rightStrengthLabel.textContent = '右レベル：';
+  rightStrengthLabel.style.marginRight = '5px';
+  const rightStrengthSelect = document.createElement('select');
+  rightStrengthSelect.name = 'touchpad-rightstrength';
+  rightStrengthSelect.setAttribute('aria-label', '右タッチパッドレベル');
+  touchpadStrengthOptions.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt.value;
+    o.textContent = opt.label;
+    rightStrengthSelect.appendChild(o);
+  });
+  rightStrengthLabel.appendChild(rightStrengthSelect);
+  wrapper.appendChild(rightStrengthLabel);
+
+  touchpadSettings.appendChild(wrapper);
 }
 
 // LED設定項目の動的生成
@@ -541,20 +646,24 @@ function toFixedReportData(source) {
   return fixed;
 }
 
-function flattenKeymapLayerToUint8Array() {
-  const flat = [];
+function getFunctionNameByValue(funcValue) {
+  const numValue = Number(funcValue);
+  const found = functionCodeList.find((fn) => Number(fn.value) === numValue);
+  return found ? found.name : '';
+}
 
-  flat.push(toUint8(webhid_data.CMD_APPLY));
-
-  const primaryProfileSelect = document.getElementById('primaryProfileSelect');
-  const primaryProfile = primaryProfileSelect?.value ?? '0';
-  const profileSelect = document.getElementById('profileSelect');
-  const profile = profileSelect?.value ?? '0';
-  const osLangSelect = document.getElementById('osLangSelect');
-  const osLang = osLangSelect?.value ?? '0';
+function setWebhidHeader(flat, cmd, protocolVersion, confVersion, primaryProfile, profile, osLang) {
+  flat.push(toUint8(cmd));
+  if (protocolVersion !== 0) {
+    flat.push(toUint8(protocolVersion, confVersion));
+  }
   flat.push(toUint8(primaryProfile));
   flat.push(toUint8(profile));
   flat.push(toUint8(osLang));
+}
+
+function flattenKeymapLayerToUint8Array(flat) {
+  // be aware of the differences in processing based on the protocol version and conf version.
   
   for (let layer = 0; layer < layerCount; layer++) {
     for (let keyIndex = 0; keyIndex < keymapByLayer.length; keyIndex++) {
@@ -601,27 +710,40 @@ function flattenKeymapLayerToUint8Array() {
       if(valuesToPush[0] <= valuesToPush[1]) {
         showMessageError('半押し動作ポイント > 半リリース動作ポイント に修正してください');
         setTimeout(clearMessage, 5000);
-        return [];
+        return false;
       }
       if(valuesToPush[2] <= valuesToPush[3]) {
         showMessageError('全押し動作ポイント > 全リリース動作ポイント に修正してください');
         setTimeout(clearMessage, 5000);
-        return [];
+        return false;
       }
       if(valuesToPush[2] <= valuesToPush[0]) {
         showMessageError('全押し動作ポイント > 半押し動作ポイント に修正してください');
         setTimeout(clearMessage, 5000);
-        return [];
+        return false;
       }
       if((valuesToPush[4] << 8) + valuesToPush[5] >= 1000) {
         showMessageError('タップ判定時間 < 1000 に修正してください');
         setTimeout(clearMessage, 5000);
-        return [];
+        return false;
       }
       valuesToPush.forEach(v => flat.push(v));
     }
   }
 
+  // touchpad
+  if (webhid_data.received_confversion >= 2) {
+    const touchpadFeelLeft = document.querySelector('select[name="touchpad-leftfeel"]');
+    const touchpadStrengthLeft = document.querySelector('select[name="touchpad-leftstrength"]');
+    const touchpadFeelRight = document.querySelector('select[name="touchpad-rightfeel"]');
+    const touchpadStrengthRight = document.querySelector('select[name="touchpad-rightstrength"]');
+    flat.push(toUint8(touchpadFeelLeft.value));
+    flat.push(toUint8(touchpadStrengthLeft.value));
+    flat.push(toUint8(touchpadFeelRight.value));
+    flat.push(toUint8(touchpadStrengthRight.value));
+  }
+
+  // LED
   const ledSettingsEl = document.getElementById('ledSettings');
   if (ledSettingsEl) {
     const colorSelects = ledSettingsEl.querySelectorAll('select[name^="led-color-"]');
@@ -638,13 +760,7 @@ function flattenKeymapLayerToUint8Array() {
     flat.push(backlight?.checked ? 1 : 0);
   }
 
-  return new Uint8Array(flat);
-}
-
-function getFunctionNameByValue(funcValue) {
-  const numValue = Number(funcValue);
-  const found = functionCodeList.find((fn) => Number(fn.value) === numValue);
-  return found ? found.name : '';
+  return true;
 }
 
 function inflateKeymapLayerFromUint8Array(payload) {
@@ -701,7 +817,7 @@ function inflateKeymapLayerFromUint8Array(payload) {
       const settingBtn = row.querySelector('button.function-btn');
       if (settingBtn) {
         settingBtn.setAttribute('data-func-value', String(funcValue));
-        if(funcValue === '0' || funcValue === 0) {
+        if(funcValue === 0) {
           settingBtn.textContent = '';
         } else {
           settingBtn.textContent = getFunctionNameByValue(funcValue);
@@ -710,6 +826,7 @@ function inflateKeymapLayerFromUint8Array(payload) {
     });
   }
 
+  // magsw
   const magswSettings = document.getElementById('MagswSettings') || document.getElementById('magswSettings');
   if (magswSettings) {
     const rows = magswSettings.querySelectorAll('tbody tr');
@@ -726,6 +843,23 @@ function inflateKeymapLayerFromUint8Array(payload) {
     });
   }
 
+  // touchpad
+  if (webhid_data.received_confversion >= 2) {
+    const leftfeel = payload[index++] ?? 0;
+    const leftstrength = payload[index++] ?? 0;
+    const rightfeel = payload[index++] ?? 0;
+    const rightstrength = payload[index++] ?? 0;
+    const touchpadFeelLeft = document.querySelector('select[name="touchpad-leftfeel"]');
+    const touchpadStrengthLeft = document.querySelector('select[name="touchpad-leftstrength"]');
+    const touchpadFeelRight = document.querySelector('select[name="touchpad-rightfeel"]');
+    const touchpadStrengthRight = document.querySelector('select[name="touchpad-rightstrength"]');
+    if (touchpadFeelLeft) touchpadFeelLeft.value = String(leftfeel);
+    if (touchpadStrengthLeft) touchpadStrengthLeft.value = String(leftstrength);
+    if (touchpadFeelRight) touchpadFeelRight.value = String(rightfeel);
+    if (touchpadStrengthRight) touchpadStrengthRight.value = String(rightstrength);
+  }
+
+  // LED
   const ledSettingsEl = document.getElementById('ledSettings');
   if (ledSettingsEl) {
     const colorSelects = ledSettingsEl.querySelectorAll('select[name^="led-color-"]');
@@ -753,53 +887,60 @@ function inflateKeymapLayerFromUint8Array(payload) {
   return true;
 }
 
-function checkProfileParameters() {
-  //if(tpp <= tpp2r) {
-  //if(tp <= tpp) {
-  //if(tp <= tp2r) {
-  //if(dur_hold >= KeyswConst::DurHoldL) {
-  return true;
-}
 
-document.getElementById('applyBtn').addEventListener('click', async () => {
-  if(checkProfileParameters() === false) {
+
+async function initialLoadBtnClick() {
+  const reqprotover = [];
+
+  const cmd = webhid_data.CMD_GETPROTOCOLVERSION;
+  const protover = webhid_data.max_protocolversion;
+  setWebhidHeader(reqprotover, cmd, protover, 0, 0, 0, 0);
+
+  if(sendReport(reqprotover) === false) {
+    showMessageError('デバイス接続状態を確認してください。');
     return;
   }
-
-  const flatKeymap = flattenKeymapLayerToUint8Array();
-  if(flatKeymap.length === 0) {
-    return;
-  }
-  //const fixedPayload = toFixedReportData(flatKeymap);
-  sendReport(flatKeymap);
-  console.log(Array.from(flatKeymap));
+  console.log(Array.from(reqprotover));
   await new Promise((resolve) => setTimeout(resolve, 200));
 
-  const received = await receiveReport();
-  if (!received || received.length === 0) {
-    showMessageError('反映結果取得に失敗');
-    return;
-  }
-
-  console.log(Array.from(received));
-  if (received[0] === webhid_data.RESPONSE_ACK) {
-    showMessageInfo('反映に成功しました');
+  const receiveprotover = await receiveReport();
+  // firmware v1.0.0 does not support CMD_GETPROTOCOLVERSION request
+  if (!receiveprotover || receiveprotover.length === 0) {
+    webhid_data.received_protocolversion = 0; // non support condition
   } else {
-    const responseText = webhid_data.ResponseCode[received[0]] ?? String(received[0]);
-    showMessageError('反映に失敗。エラー:' + responseText);
+    console.log(Array.from(receiveprotover));
+    if (receiveprotover[0] === webhid_data.RESPONSE_ACK) {
+      let pver = receiveprotover[1] ?? 0;
+      if(pver > webhid_data.max_protocolversion) {
+        showMessageError('プロトコルバージョンが想定より大きいです。');
+        pver = 0;
+      }
+      webhid_data.received_protocolversion = pver;
+    }
   }
-});
 
-document.getElementById('loadBtn').addEventListener('click', async () => {
-  if (typeof sendReport !== 'function' || typeof receiveReport !== 'function') {
-    showMessageError('先に接続してください');
+  const profileSelect = document.getElementById('profileSelect');
+  if (profileSelect) {
+    profileSelect.value = '126'; // Load active profile
+  }
+  await handleLoadBtnClick();
+}
+
+async function handleLoadBtnClick() {
+  webhid_data.applied_keymap = false;
+
+  const reqload = [];
+  const cmd = webhid_data.CMD_FETCH;
+  const protover = webhid_data.received_protocolversion;
+  const confver = webhid_data.received_confversion;
+  const primaryProfile = toUint8(document.getElementById('primaryProfileSelect').value, 10);
+  const profile = toUint8(document.getElementById('profileSelect').value, 10);
+  const oslayout = toUint8(document.getElementById('osLangSelect').value, 10);
+  setWebhidHeader(reqload, cmd, protover, confver, primaryProfile, profile, oslayout);
+  if(!sendReport(reqload)) {
+    showMessageError('読込コマンド送信に失敗。デバイス接続状態を確認してください。');
     return;
   }
-
-  const primaryProfile = parseInt(document.getElementById('primaryProfileSelect').value, 10);
-  const profile = parseInt(document.getElementById('profileSelect').value, 10);
-  const oslayout = parseInt(document.getElementById('osLangSelect').value, 10);
-  sendReport([toUint8(webhid_data.CMD_FETCH), toUint8(primaryProfile), toUint8(profile), toUint8(oslayout)]);
   await new Promise((resolve) => setTimeout(resolve, 200));
 
   const received = await receiveReport();
@@ -822,7 +963,349 @@ document.getElementById('loadBtn').addEventListener('click', async () => {
     const responseText = webhid_data.ResponseCode[received[0]] ?? String(received[0]);
     showMessageError('読み込みに失敗。エラー:' + responseText);
   }
-});
+}
+
+
+
+async function handleApplyBtnClick() {
+  webhid_data.applied_keymap = false;
+
+  const flat = [];
+
+  const cmd = webhid_data.CMD_APPLY;
+  const protocolVersion = webhid_data.received_protocolversion;
+  const confVersion = webhid_data.received_confversion;
+  const primaryProfileSelect = document.getElementById('primaryProfileSelect');
+  const primaryProfile = primaryProfileSelect?.value ?? '0';
+  const profileSelect = document.getElementById('profileSelect');
+  const profile = profileSelect?.value ?? '0';
+  const osLangSelect = document.getElementById('osLangSelect');
+  const osLang = osLangSelect?.value ?? '0';
+  setWebhidHeader(flat, cmd, protocolVersion, confVersion, primaryProfile, profile, osLang);
+
+  if(!flattenKeymapLayerToUint8Array(flat)) {
+    return;
+  }
+
+  //const fixedPayload = toFixedReportData(flat);
+  if(sendReport(flat) === false) {
+    showMessageError('反映に失敗しました。デバイス接続状態を確認してください。');
+    return;
+  }
+  console.log(Array.from(flat));
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  const received = await receiveReport();
+  if (!received || received.length === 0) {
+    showMessageError('反映結果取得に失敗。デバイス接続状態を確認してください');
+    return;
+  }
+
+  console.log(Array.from(received));
+  if (received[0] === webhid_data.RESPONSE_ACK) {
+    showMessageInfo('反映に成功しました');
+    webhid_data.applied_keymap = true;
+  } else {
+    const responseText = webhid_data.ResponseCode[received[0]] ?? String(received[0]);
+    showMessageError('反映に失敗。エラー:' + responseText);
+  }
+}
+
+
+async function handleSaveBtnClick() {
+  if(webhid_data.applied_keymap === false) {
+    const confirmed = window.confirm('キーマップを反映していませんが、保存していいですか？');
+    if (!confirmed) {
+      return;
+    }
+  }
+
+  const reqsave = [];
+  const cmd = webhid_data.CMD_SAVE;
+  const protover = webhid_data.received_protocolversion;
+  const confver = webhid_data.received_confversion;
+  const primaryProfile = toUint8(document.getElementById('primaryProfileSelect').value, 10);
+  const profile = toUint8(document.getElementById('profileSelect').value, 10);
+  const oslayout = toUint8(document.getElementById('osLangSelect').value, 10);
+  setWebhidHeader(reqsave, cmd, protover, confver, primaryProfile, profile, oslayout);
+  if(!sendReport(reqsave)) {
+    showMessageError('保存に失敗。デバイス接続状態を確認してください。');
+    return;
+  }
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  const received = await receiveReport();
+  if (received && received.length > 0) {
+    console.log(Array.from(received));
+
+    if (received[0] === webhid_data.RESPONSE_ACK) {
+      showMessageInfo('保存に成功しました');
+    } else {
+      const responseText = webhid_data.ResponseCode[received[0]] ?? String(received[0]);
+      showMessageError('保存に失敗。エラー:' + responseText);
+    }
+  } else {
+    showMessageError('保存に失敗。デバイス接続状態を確認してください。');
+  }
+
+}
+
+
+async function handleImportBtnClick() {
+  // ファイル選択ダイアログを表示
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.style.display = 'none';
+  document.body.appendChild(input);
+
+  input.addEventListener('change', async (e) => {
+    const file = input.files[0];
+    if (!file) {
+      document.body.removeChild(input);
+      return;
+    }
+    try {
+      const text = await file.text();
+      let data = JSON.parse(text);
+      // osLang
+      if (typeof data.osLang !== 'undefined') {
+        const osLangSelect = document.getElementById('osLangSelect');
+        if (osLangSelect) osLangSelect.value = String(data.osLang);
+      }
+      // keymapByLayer
+      if (Array.isArray(data.keymap)) {
+        for (let layer = 0; layer < layerCount; layer++) {
+          for (let key = 0; key < keymapByLayer.length; key++) {
+            const item = data.keymap[layer]?.[key];
+            if (item) {
+              keymapByLayer[key][layer] = { ...item };
+            }
+          }
+        }
+      }
+      // customSettings
+      const customSettings = document.getElementById('customSettings');
+      if (customSettings && Array.isArray(data.customSettings)) {
+        const rows = customSettings.querySelectorAll('tbody tr');
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          const selects = row.querySelectorAll('select');
+          const settingBtn = row.querySelector('button.function-btn');
+          const obj = data.customSettings[i];
+          if (obj) {
+            if (selects[0]) selects[0].value = String(obj.key);
+            if (selects[1]) selects[1].value = String(obj.state);
+            if (selects[2]) selects[2].value = String(obj.layer);
+            if (settingBtn) {
+              settingBtn.setAttribute('data-func-value', String(obj.func));
+              settingBtn.textContent = obj.func === '0' || obj.func === 0 ? '' : getFunctionNameByValue(obj.func);
+            }
+          }
+        }
+      }
+      // magswSettings
+      const magswSettings = document.getElementById('MagswSettings') || document.getElementById('magswSettings');
+      if (magswSettings && Array.isArray(data.magswSettings)) {
+        const rows = magswSettings.querySelectorAll('tbody tr');
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          const obj = data.magswSettings[i];
+          const inputs = row.querySelectorAll('input[type="number"]');
+          if (obj) {
+            if (inputs[0]) inputs[0].value = String(obj.partialPressPoint);
+            if (inputs[1]) inputs[1].value = String(obj.partialReleasePoint);
+            if (inputs[2]) inputs[2].value = String(obj.PressPoint);
+            if (inputs[3]) inputs[3].value = String(obj.ReleasePoint);
+            if (inputs[4]) inputs[4].value = String(obj.tapJudgeTime);
+          }
+        }
+      }
+      // touchpadSettings
+      if (Array.isArray(data.touchpadSettings) && data.touchpadSettings.length > 0) {
+        const obj = data.touchpadSettings[0];
+        const touchpadFeelLeft = document.querySelector('select[name="touchpad-leftfeel"]');
+        const touchpadStrengthLeft = document.querySelector('select[name="touchpad-leftstrength"]');
+        const touchpadFeelRight = document.querySelector('select[name="touchpad-rightfeel"]');
+        const touchpadStrengthRight = document.querySelector('select[name="touchpad-rightstrength"]');
+        if (touchpadFeelLeft) touchpadFeelLeft.value = String(obj.leftFeel);
+        if (touchpadStrengthLeft) touchpadStrengthLeft.value = String(obj.leftStrength);
+        if (touchpadFeelRight) touchpadFeelRight.value = String(obj.rightFeel);
+        if (touchpadStrengthRight) touchpadStrengthRight.value = String(obj.rightStrength);
+      }
+      // ledSettings
+      if (Array.isArray(data.ledSettings) && data.ledSettings.length > 0) {
+        const obj = data.ledSettings[0];
+        const ledSettingsEl = document.getElementById('ledSettings');
+        if (ledSettingsEl) {
+          const colorSelects = ledSettingsEl.querySelectorAll('select[name^="led-color-"]');
+          for (let i = 0; i < colorSelects.length; i++) {
+            colorSelects[i].value = String(obj.colors?.[i] ?? '1');
+          }
+          const rgbInputs = ledSettingsEl.querySelectorAll('input[name^="led-rgb-"]');
+          for (let i = 0; i < rgbInputs.length; i++) {
+            rgbInputs[i].value = String(obj.rgb?.[i] ?? '0');
+          }
+          const brightness = ledSettingsEl.querySelector('#led-brightness');
+          if (brightness) brightness.value = String(obj.brightness ?? '128');
+          const backlight = ledSettingsEl.querySelector('#led-backlight');
+          if (backlight) backlight.checked = Boolean(obj.backlight);
+        }
+      }
+      syncKeyboardDomFromLayerData();
+      showMessageInfo('インポートが完了しました');
+    } catch (err) {
+      showMessageError('インポートに失敗しました: ' + err);
+    } finally {
+      document.body.removeChild(input);
+    }
+  });
+  input.click();
+}
+
+async function handleExportBtnClick() {
+  // JSON形式でkeymapByLayerをエクスポート
+  try {
+    // osLang
+    const osLangSelect = document.getElementById('osLangSelect');
+    const osLang = osLangSelect?.value ?? '0';
+
+    // [layer][key]順に変換
+    const layerMajorArray = Array.from({ length: layerCount }, (_, layer) =>
+      keymapByLayer.map(keyArr => keyArr[layer])
+    );
+    // customSettingsの内容を抽出
+    const customSettingsObj = [];
+    const customSettings = document.getElementById('customSettings');
+    if (customSettings) {
+      const rows = customSettings.querySelectorAll('tbody tr');
+      rows.forEach((row) => {
+        const selects = row.querySelectorAll('select');
+        const settingBtn = row.querySelector('button.function-btn');
+        const keyValue = selects[0]?.value ?? '0';
+        const stateValue = selects[1]?.value ?? '0';
+        const layerValue = selects[2]?.value ?? '0';
+        const funcValue = settingBtn?.getAttribute('data-func-value') ?? '0';
+        customSettingsObj.push({
+          key: keyValue,
+          state: stateValue,
+          layer: layerValue,
+          func: funcValue
+        });
+      });
+    }
+
+    // magswSettingsの内容を抽出
+    const magswSettingsObj = [];
+    const magswSettings = document.getElementById('MagswSettings') || document.getElementById('magswSettings');
+    if (magswSettings) {
+      const rows = magswSettings.querySelectorAll('tbody tr');
+      let rowValues = [];
+      rows.forEach((row) => {
+        const inputs = Array.from(row.querySelectorAll('input[type="number"]'));
+        // 0〜3番目はそのまま
+        const partialPressPoint = inputs[0]?.value ?? '0';
+        const partialReleasePoint = inputs[1]?.value ?? '0';
+        const PressPoint = inputs[2]?.value ?? '0';
+        const ReleasePoint = inputs[3]?.value ?? '0';
+        let tapJudgeTime = '0';
+        if (inputs[4]) {
+          tapJudgeTime = inputs[4].value;
+        }
+        const obj = {
+          partialPressPoint,
+          partialReleasePoint,
+          PressPoint,
+          ReleasePoint,
+          tapJudgeTime
+        };
+        magswSettingsObj.push(obj);
+        rowValues.push(obj);
+      });
+      // rowsが42未満の場合、最初のrowの値で埋める
+      if (rows.length > 0 && magswSettingsObj.length < 42) {
+        const fillObj = rowValues[0];
+        for (let i = magswSettingsObj.length; i < 42; i++) {
+          magswSettingsObj.push({ ...fillObj });
+        }
+      }
+    }
+
+    // touchpad設定の内容を抽出
+    // even if conversion < 2, the touchpad elements may be extracted.
+    const touchpadSettingsObj = [];
+    const touchpadFeelLeft = document.querySelector('select[name="touchpad-leftfeel"]');
+    const touchpadStrengthLeft = document.querySelector('select[name="touchpad-leftstrength"]');
+    const touchpadFeelRight = document.querySelector('select[name="touchpad-rightfeel"]');
+    const touchpadStrengthRight = document.querySelector('select[name="touchpad-rightstrength"]');
+    touchpadSettingsObj.push({
+      leftFeel: touchpadFeelLeft?.value ?? '0',
+      leftStrength: touchpadStrengthLeft?.value ?? '0',
+      rightFeel: touchpadFeelRight?.value ?? '0',
+      rightStrength: touchpadStrengthRight?.value ?? '0'
+    });
+
+    // LED設定の内容を抽出
+    const ledSettingsObj = [];
+    const ledSettingsEl = document.getElementById('ledSettings');
+    if (ledSettingsEl) {
+      const colorSelects = ledSettingsEl.querySelectorAll('select[name^="led-color-"]');
+      const ledColors = Array.from(colorSelects).map(select => select.value);
+      const rgbInputs = ledSettingsEl.querySelectorAll('input[name^="led-rgb-"]');
+      const ledRGB = Array.from(rgbInputs).map(input => input.value);
+      const brightness = ledSettingsEl.querySelector('#led-brightness');
+      const backlight = ledSettingsEl.querySelector('#led-backlight');
+      ledSettingsObj.push({
+        colors: ledColors,
+        rgb: ledRGB,
+        brightness: brightness?.value ?? '128',
+        backlight: backlight?.checked ? 1 : 0
+      });
+    }
+
+    const exportObj = {};
+    exportObj.osLang = osLang;
+    exportObj.keymap = layerMajorArray;
+    exportObj.customSettings = customSettingsObj;
+    exportObj.magswSettings = magswSettingsObj;
+    exportObj.touchpadSettings = touchpadSettingsObj;
+    exportObj.ledSettings = ledSettingsObj;
+    // JSON.stringify でインデント2で整形
+    let jsonStr = JSON.stringify(exportObj, null, 2);
+    // 100文字以内で改行を入れる（LF）
+    const lines = jsonStr.split('\n');
+    const wrappedLines = [];
+    for (const line of lines) {
+      if (line.length <= 100) {
+        wrappedLines.push(line);
+      } else {
+        let start = 0;
+        while (start < line.length) {
+          wrappedLines.push(line.slice(start, start + 100));
+          start += 100;
+        }
+      }
+    }
+    const exportStr = wrappedLines.join('\n'); // LFのみ
+
+    // Blobを使ってダウンロード
+    const blob = new Blob([exportStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'keymap.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 0);
+    showMessageInfo('キーマップをエクスポートしました');
+  } catch (e) {
+    showMessageError('エクスポートに失敗しました: ' + e);
+  }
+}
+
 
 function clearMessage() {
   const msgEl = document.getElementById('message');
@@ -853,33 +1336,6 @@ function showMessageError(msg) {
   msgEl.style.display = '';
 }
 
-document.getElementById('saveBtn').addEventListener('click', async () => {
-  if (typeof sendReport !== 'function' || typeof receiveReport !== 'function') {
-    showMessageError('先に \'接続\' してください。');
-    return;
-  }
-
-  const primaryProfile = parseInt(document.getElementById('primaryProfileSelect').value, 10);
-  const profile = parseInt(document.getElementById('profileSelect').value, 10);
-  const oslayout = parseInt(document.getElementById('osLangSelect').value, 10);
-  sendReport([toUint8(webhid_data.CMD_SAVE), toUint8(primaryProfile), toUint8(profile), toUint8(oslayout)]);
-  await new Promise((resolve) => setTimeout(resolve, 50));
-
-  const received = await receiveReport();
-  if (received && received.length > 0) {
-    console.log(Array.from(received));
-
-    if (received[0] === webhid_data.RESPONSE_ACK) {
-      showMessageInfo('保存に成功しました');
-    } else {
-      const responseText = webhid_data.ResponseCode[received[0]] ?? String(received[0]);
-      showMessageError('保存に失敗。エラー:' + responseText);
-    }
-  } else {
-    showMessageError('保存に失敗しました');
-  }
-
-});
 
 // FunctionCode一覧（functions_code.h から手動で抽出・同期が必要）
 const functionCodeList = [
@@ -1093,11 +1549,19 @@ function renderFunctionList() {
   });
 }
 
+// ボタンイベントリスナー設定
+document.getElementById('loadBtn').addEventListener('click', handleLoadBtnClick);
+document.getElementById('applyBtn').addEventListener('click', handleApplyBtnClick);
+document.getElementById('saveBtn').addEventListener('click', handleSaveBtnClick);
+document.getElementById('importBtn').addEventListener('click', handleImportBtnClick);
+document.getElementById('exportBtn')?.addEventListener('click', handleExportBtnClick);
+
 // DOMContentLoaded後に描画
 window.addEventListener('DOMContentLoaded', () => {
   renderKeyboard();
   renderCustomSettings();
   renderMagswSettings();
+  renderTouchpadSettings();
   renderLedSettings();
   renderFunctionList();
 

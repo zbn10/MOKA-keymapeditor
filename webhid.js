@@ -9,6 +9,7 @@ let webhid_data = {
   CMD_FETCH: 11,
   CMD_APPLY: 21,
   CMD_SAVE: 31,
+  CMD_GETPROTOCOLVERSION: 41,
 
   RESPONSE_ACK: 0,
   RESPONSE_NACK: 1,
@@ -20,9 +21,12 @@ let webhid_data = {
   RESPONSE_INVALID_KEYMAP: 7,
   RESPONSE_INVALID_INDKEY: 8,
   RESPONSE_INVALID_MAGATTR: 9,
-  RESPONSE_INVALID_KEYLED: 10,
-  RESPONSE_INVALID_LED: 11,
-  RESPONSE_INVALID_SAVE: 12,
+  RESPONSE_INVALID_OEF: 10,
+  RESPONSE_INVALID_KEYLED: 11,
+  RESPONSE_INVALID_LED: 12,
+  RESPONSE_INVALID_SAVE: 13,
+  RESPONSE_INVALID_CONFVERSION: 14,
+  RESPONSE_INVALID_PROTOCOLVERSION: 15,
   RESPONSE_ERROR: 127,
 
   ResponseCode: {
@@ -36,9 +40,12 @@ let webhid_data = {
     7: 'Invalid Keymap Data',
     8: 'Invalid Individual Key',
     9: 'Invalid Magsw Attributes',
-    10: 'Invalid Key LED Setting',
-    11: 'Invalid LED Setting',
-    12: 'Save Failed',
+    10: 'Invalid OEF Setting',
+    11: 'Invalid Key LED Setting',
+    12: 'Invalid LED Setting',
+    13: 'Save Failed',
+    14: 'Invalid Configuration Version',
+    15: 'Invalid Protocol Version',
     127: 'Error'
   },
 
@@ -75,6 +82,10 @@ let webhid_data = {
   },
 
   have_keylist: false,
+  applied_keymap: false,
+  max_protocolversion: 1,
+  received_protocolversion: null,
+  received_confversion: null,
 };
 
 (function() {

@@ -48,7 +48,7 @@ var serial = {};
   };
 
   serial.Port.prototype.send = async function(data) {
-    console.log(typeof webhid_data.REPORTID);
+    //console.log(typeof webhid_data.REPORTID);
     return await this.device_.sendFeatureReport(webhid_data.REPORTID, data);
   };
 
